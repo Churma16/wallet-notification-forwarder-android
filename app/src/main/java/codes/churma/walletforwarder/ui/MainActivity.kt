@@ -145,10 +145,11 @@ class MainActivity : AppCompatActivity() {
         binding.btnTestPing.text = "Pinging..."
 
         val testPayload = NotificationPayload(
-            packageName = "com.jago",
+            packageName = "codes.churma.walletforwarder",
             title = "Test Ping (Wallet Forwarder)",
-            text = "Pembayaran Rp 15.000 ke Kopi Kenangan via Jago debit card",
-            timestamp = System.currentTimeMillis()
+            text = "Uji coba koneksi push notification webhook dari perangkat Android",
+            timestamp = System.currentTimeMillis(),
+            isTest = true
         )
 
         lifecycleScope.launch {
