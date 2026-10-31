@@ -1,16 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#1E88E5</color>
-    <color name="primary_variant">#1565C0</color>
+    <!-- Brand colors -->
+    <color name="primary">#0284C7</color>
+    <color name="primary_variant">#0369A1</color>
     <color name="on_primary">#FFFFFF</color>
-    <color name="secondary">#26A69A</color>
-    <color name="secondary_variant">#00897B</color>
+    
+    <color name="secondary">#0EA5E9</color>
+    <color name="secondary_variant">#0284C7</color>
     <color name="on_secondary">#FFFFFF</color>
-    <color name="background">#F8F9FA</color>
-    <color name="surface">#FFFFFF</color>
-    <color name="on_surface">#212121</color>
-    <color name="status_green">#2E7D32</color>
-    <color name="status_red">#C62828</color>
-    <color name="text_muted">#757575</color>
-    <color name="card_stroke">#E0E0E0</color>
+    
+    <!-- Theme canvas (Light Mode) -->
+    <color name="app_background">#F1F5F9</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_stroke">#E2E8F0</color>
+    
+    <!-- Typography -->
+    <color name="text_primary">#0F172A</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="text_muted">#94A3B8</color>
+    
+    <!-- Form Inputs (Light Mode) -->
+    <color name="input_background">#F8FAFC</color>
+    <color name="input_stroke">#CBD5E1</color>
+    <color name="input_text">#0F172A</color>
+    <color name="input_hint">#94A3B8</color>
+    
+    <!-- Activity Logs Console -->
+    <color name="log_background">#F8FAFC</color>
+    <color name="log_text">#334155</color>
+    
+    <!-- Status Badges -->
+    <color name="status_green">#16A34A</color>
+    <color name="status_red">#DC2626</color>
 </resources>
