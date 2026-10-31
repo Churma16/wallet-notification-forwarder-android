@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">Wallet Forwarder</string>
+    <string name="service_name">Wallet Notification Forwarder Service</string>
+    
+    <!-- UI Strings -->
+    <string name="header_title">Wallet Forwarder</string>
+    <string name="header_subtitle">Real-time financial notification companion for Wallet MCP</string>
+    
+    <string name="section_permissions">Required Permissions</string>
+    <string name="perm_notification_listener">Notification Access</string>
+    <string name="perm_notification_listener_desc">Allows reading bank and e-wallet status bar notifications</string>
+    <string name="perm_battery_desc">Exempts app from OS background battery killing</string>
+    <string name="status_granted">Granted</string>
+    <string name="status_not_granted">Enable Access</string>
+    <string name="status_battery_optimized">Battery: Optimized</string>
+    <string name="status_battery_unrestricted">Battery: Unrestricted</string>
+    <string name="btn_fix_battery">Allow Background</string>
+    
+    <string name="section_connection">Webhook Server Configuration</string>
+    <string name="hint_webhook_url">Webhook URL (e.g. https://domain.com/webhook/notification)</string>
+    <string name="hint_bearer_token">Bearer Secret Token</string>
+    <string name="btn_save_config">Save Configuration</string>
+    <string name="btn_test_ping">Test Ping Webhook</string>
+    
+    <string name="section_logs">Forwarded Activity Log</string>
+    <string name="logs_empty">No notifications captured yet.</string>
+    <string name="btn_clear_logs">Clear Logs</string>
+    
+    <string name="toast_config_saved">Configuration saved successfully!</string>
+    <string name="toast_test_ping_success">Test ping successful! Server responded 200 OK.</string>
+    <string name="toast_test_ping_failed">Test ping failed: %s</string>
+</resources>
