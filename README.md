@@ -60,8 +60,8 @@ Third-party automation apps (like MacroDroid or Tasker) introduce external app c
 ## 🚀 Getting Started
 
 ### 1. Download & Install APK
-1. Go to the [GitHub Actions tab](https://github.com/Churma16/wallet-notification-forwarder-android/actions) or Releases.
-2. Download the latest `wallet-forwarder-debug-apk` artifact.
+1. Go to the [Releases page](https://github.com/Churma16/wallet-notification-forwarder-android/releases) or the [GitHub Actions tab](https://github.com/Churma16/wallet-notification-forwarder-android/actions).
+2. Download the latest `wallet-forwarder-v*.apk` release package.
 3. Install the APK on your Android device (Android 8.0+ / API 26+).
 
 ### 2. Configure Permissions & Endpoint

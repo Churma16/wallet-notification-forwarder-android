@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build Debug APK
+    name: Build Release APK
     runs-on: ubuntu-latest
 
     steps:
@@ -29,13 +29,25 @@ jobs:
       - name: Grant Execute Permission for Gradlew
         run: chmod +x ./gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Generate Release Keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore release.jks \
+            -alias walletforwarder \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass walletforwarder \
+            -keypass walletforwarder \
+            -dname "CN=Wallet Forwarder, OU=Churma, O=Churma, L=Jakarta, ST=Jakarta, C=ID"
 
-      - name: Upload Debug APK Artifact
+      - name: Build Signed Release APK
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wallet-forwarder-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: wallet-forwarder-apk
+          path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 30
