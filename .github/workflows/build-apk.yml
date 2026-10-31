@@ -31,20 +31,32 @@ jobs:
       - name: Grant Execute Permission for Gradlew
         run: chmod +x ./gradlew
 
-      - name: Generate Release Keystore
+      - name: Restore Release Keystore
         run: |
-          keytool -genkeypair -v \
-            -keystore release.jks \
-            -alias walletforwarder \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass walletforwarder \
-            -keypass walletforwarder \
-            -dname "CN=Wallet Forwarder, OU=Churma, O=Churma, L=Jakarta, ST=Jakarta, C=ID"
+          if [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > release.jks
+            echo "Release keystore restored from repository secret."
+          else
+            echo "RELEASE_KEYSTORE_BASE64 not set, falling back to dynamic keystore."
+            keytool -genkeypair -v \
+              -keystore release.jks \
+              -alias walletforwarder \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass walletforwarder \
+              -keypass walletforwarder \
+              -dname "CN=Wallet Forwarder, OU=Churma, O=Churma, L=Jakarta, ST=Jakarta, C=ID"
+          fi
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
 
       - name: Build Signed Release APK
         run: ./gradlew assembleRelease --stacktrace
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
