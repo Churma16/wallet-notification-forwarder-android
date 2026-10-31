@@ -16,5 +16,8 @@ data class NotificationPayload(
     val text: String,
 
     @SerializedName("timestamp")
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+
+    @SerializedName("isTest")
+    val isTest: Boolean? = null
 )
