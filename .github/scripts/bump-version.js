@@ -19,6 +19,23 @@ export function parseSemVer(versionString) {
 }
 
 /**
+ * Resolves authoritative base SemVer string, prioritizing the previous stable git tag.
+ *
+ * @param {string} currentVersion
+ * @param {string} [prevTag]
+ * @returns {string}
+ */
+export function resolveBaseVersion(currentVersion, prevTag = '') {
+  if (prevTag) {
+    const clean = prevTag.replace(/^v/, '').trim();
+    if (/^\d+\.\d+\.\d+$/.test(clean)) {
+      return clean;
+    }
+  }
+  return currentVersion;
+}
+
+/**
  * Computes next semver based on bump type.
  *
  * @param {string} currentVersion
@@ -174,11 +191,12 @@ export async function bumpVersion() {
     bumpType = detectBumpTypeFromCommits(prevTag);
   }
 
-  const nextVersion = incrementVersion(currentVersion, bumpType);
+  const baseVersion = resolveBaseVersion(currentVersion, prevTag);
+  const nextVersion = incrementVersion(baseVersion, bumpType);
   const nextCode = currentCode + 1;
   const nextTag = `v${nextVersion}`;
 
-  console.log(`[INFO] Current version: ${currentVersion} (code: ${currentCode}), previous stable tag: ${prevTag || '(none)'}`);
+  console.log(`[INFO] Current version: ${currentVersion} (code: ${currentCode}), base version: ${baseVersion}, previous stable tag: ${prevTag || '(none)'}`);
   console.log(`[INFO] Bump type: ${bumpType} -> Next version: ${nextVersion} (code: ${nextCode})`);
 
   // Collect commits for release notes and changelog

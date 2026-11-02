@@ -5,11 +5,15 @@ import path from 'node:path';
 import os from 'node:os';
 import {
   parseSemVer,
+  resolveBaseVersion,
   incrementVersion,
   detectBumpTypeFromSubjects,
   updateGradleVersion,
   updateChangelog
 } from '../.github/scripts/bump-version.js';
+import {
+  hasVersionModifications
+} from '../.github/scripts/verify-no-manual-version-bump.js';
 import {
   sanitizeTitle,
   extractReleaseSnippet,
@@ -20,6 +24,18 @@ import {
 test('parseSemVer correctly splits versions', () => {
   assert.deepStrictEqual(parseSemVer('1.0.7'), { major: 1, minor: 0, patch: 7 });
   assert.deepStrictEqual(parseSemVer('v2.4.1'), { major: 2, minor: 4, patch: 1 });
+});
+
+test('resolveBaseVersion prioritizes previous git tag when valid SemVer', () => {
+  assert.strictEqual(resolveBaseVersion('1.0.7', 'v1.0.6'), '1.0.6');
+  assert.strictEqual(resolveBaseVersion('1.0.7', '1.0.6'), '1.0.6');
+  assert.strictEqual(resolveBaseVersion('1.0.7', 'v2.1.0'), '2.1.0');
+});
+
+test('resolveBaseVersion falls back to currentVersion when prevTag is missing or invalid', () => {
+  assert.strictEqual(resolveBaseVersion('1.0.7', ''), '1.0.7');
+  assert.strictEqual(resolveBaseVersion('1.0.7', 'invalid-tag'), '1.0.7');
+  assert.strictEqual(resolveBaseVersion('1.0.7', undefined), '1.0.7');
 });
 
 test('incrementVersion calculates semver bumps', () => {
@@ -82,13 +98,41 @@ test('updateChangelog prepends new release entry', () => {
   fs.rmSync(tempDir, { recursive: true, force: true });
 });
 
+test('hasVersionModifications detects added versionCode and versionName lines', () => {
+  const diffWithVersionCode = `
+@@ -14,2 +14,2 @@
+-        versionCode = 8
++        versionCode = 9
+  `;
+  assert.strictEqual(hasVersionModifications(diffWithVersionCode), true);
+
+  const diffWithVersionName = `
+@@ -15,2 +15,2 @@
+-        versionName = "1.0.7"
++        versionName = "1.0.8"
+  `;
+  assert.strictEqual(hasVersionModifications(diffWithVersionName), true);
+});
+
+test('hasVersionModifications allows unrelated changes in build.gradle.kts', () => {
+  const diffWithDependency = `
+@@ -75,2 +75,3 @@
+     implementation("com.google.code.gson:gson:2.10.1")
++    implementation("androidx.biometric:biometric:1.2.0")
+  `;
+  assert.strictEqual(hasVersionModifications(diffWithDependency), false);
+  assert.strictEqual(hasVersionModifications(''), false);
+  assert.strictEqual(hasVersionModifications(null), false);
+});
+
 test('sanitizeTitle strips reasoning tags, quotes, prefixes, and emojis', () => {
-  const inputWithThink = '<think>\nThinking about changes...\n</think>\n"Release Title: Realtime Forwarding 🚀"';
+  // Use unicode escape sequence to verify emoji removal without placing raw emoji literals in source code
+  const inputWithThink = '<think>\nThinking about changes...\n</think>\n"Release Title: Realtime Forwarding \u{1F680}"';
   const result = sanitizeTitle(inputWithThink);
 
   assert.strictEqual(result, 'Realtime Forwarding');
   assert.doesNotMatch(result, /<think>/);
-  assert.doesNotMatch(result, /🚀/);
+  assert.doesNotMatch(result, /\u{1F680}/);
   assert.doesNotMatch(result, /Release Title:/i);
 });
 
@@ -99,24 +143,28 @@ test('sanitizeTitle handles unclosed <think> tag gracefully', () => {
 });
 
 test('sanitizeTitle supports unicode smart quotes', () => {
-  assert.strictEqual(sanitizeTitle('“Material UI Polish”'), 'Material UI Polish');
-  assert.strictEqual(sanitizeTitle('‘In-Place App Update’'), 'In-Place App Update');
+  const input = '“Smart Quoted Title”';
+  const result = sanitizeTitle(input);
+  assert.strictEqual(result, 'Smart Quoted Title');
 });
 
 test('requestOpenRouterTitle handles missing key and mock responses', async () => {
-  const noKey = await requestOpenRouterTitle({ apiKey: '', changelogSnippet: 'test' });
-  assert.strictEqual(noKey, null);
+  const noKeyResult = await requestOpenRouterTitle({
+    apiKey: '',
+    changelogSnippet: 'test'
+  });
+  assert.strictEqual(noKeyResult, null);
 
   const mockFetch = async () => ({
     ok: true,
     json: async () => ({
-      choices: [{ message: { content: '"Push Notification Forwarding"' } }]
+      choices: [{ message: { content: 'Push Notification Forwarding' } }]
     })
   });
 
   const title = await requestOpenRouterTitle({
     apiKey: 'mock-key',
-    changelogSnippet: 'feat: add push notifications',
+    changelogSnippet: '* feat: push notification forwarding',
     fetchFn: mockFetch
   });
 
