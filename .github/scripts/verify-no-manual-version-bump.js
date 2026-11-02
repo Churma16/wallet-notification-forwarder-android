@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 /**
@@ -21,9 +21,11 @@ export function hasVersionModifications(diffText) {
 export function verifyNoManualVersionBump() {
   const baseRef = process.env.BASE_REF || 'origin/main';
   try {
-    const diff = execSync(`git diff ${baseRef}...HEAD -- app/build.gradle.kts`, {
-      encoding: 'utf8'
-    });
+    const diff = execFileSync(
+      'git',
+      ['diff', `${baseRef}...HEAD`, '--', 'app/build.gradle.kts'],
+      { encoding: 'utf8' }
+    );
 
     if (hasVersionModifications(diff)) {
       console.error(
@@ -37,9 +39,6 @@ export function verifyNoManualVersionBump() {
 
     console.log('[INFO] No manual version modifications detected in app/build.gradle.kts.');
   } catch (err) {
-    if (err.status === 1) {
-      process.exit(1);
-    }
     console.warn(`[WARN] Could not verify version diff against ${baseRef}: ${err.message}`);
   }
 }

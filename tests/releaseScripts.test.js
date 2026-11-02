@@ -126,11 +126,13 @@ test('hasVersionModifications allows unrelated changes in build.gradle.kts', () 
 });
 
 test('sanitizeTitle strips reasoning tags, quotes, prefixes, and emojis', () => {
-  const inputWithThink = '<think>\nThinking about changes...\n</think>\n"Release Title: Realtime Forwarding [rocket]"';
+  // Use unicode escape sequence to verify emoji removal without placing raw emoji literals in source code
+  const inputWithThink = '<think>\nThinking about changes...\n</think>\n"Release Title: Realtime Forwarding \u{1F680}"';
   const result = sanitizeTitle(inputWithThink);
 
-  assert.strictEqual(result, 'Realtime Forwarding [rocket]');
+  assert.strictEqual(result, 'Realtime Forwarding');
   assert.doesNotMatch(result, /<think>/);
+  assert.doesNotMatch(result, /\u{1F680}/);
   assert.doesNotMatch(result, /Release Title:/i);
 });
 
