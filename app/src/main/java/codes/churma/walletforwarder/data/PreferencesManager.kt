@@ -26,11 +26,14 @@ class PreferencesManager(context: Context) {
     fun appendLog(entry: String) {
         val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         val time = dateFormat.format(Date())
+        val sanitizedEntry = entry.replace("\r", " ").replace("\n", " ").trim()
+        val boundedEntry = if (sanitizedEntry.length > 120) sanitizedEntry.take(120) + "..." else sanitizedEntry
+
         val currentLogs = getLogs()
         val lines = if (currentLogs.isBlank()) mutableListOf() else currentLogs.split("\n").toMutableList()
 
-        lines.add(0, "[$time] $entry")
-        // Keep at most 30 recent log lines
+        lines.add(0, "[$time] $boundedEntry")
+        // Keep at most 30 recent log lines (FIFO, newest on top)
         val trimmed = lines.take(30).joinToString("\n")
         prefs.edit().putString(KEY_LOGS, trimmed).apply()
     }

@@ -1,5 +1,7 @@
 package codes.churma.walletforwarder.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -16,6 +18,7 @@ import codes.churma.walletforwarder.data.PreferencesManager
 import codes.churma.walletforwarder.databinding.ActivityMainBinding
 import codes.churma.walletforwarder.model.NotificationPayload
 import codes.churma.walletforwarder.network.WebhookApiClient
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -73,9 +76,34 @@ class MainActivity : AppCompatActivity() {
             executeTestPing()
         }
 
+        binding.btnCopyLogs.setOnClickListener {
+            val logs = prefsManager.getLogs()
+            if (logs.isNotBlank()) {
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("Wallet Forwarder Logs", logs)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, getString(R.string.toast_logs_copied), Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, getString(R.string.logs_empty), Toast.LENGTH_SHORT).show()
+            }
+        }
+
         binding.btnClearLogs.setOnClickListener {
-            prefsManager.clearLogs()
-            refreshLogs()
+            val logs = prefsManager.getLogs()
+            if (logs.isBlank()) {
+                Toast.makeText(this, getString(R.string.logs_empty), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.dialog_clear_logs_title))
+                .setMessage(getString(R.string.dialog_clear_logs_message))
+                .setNegativeButton(getString(R.string.dialog_cancel), null)
+                .setPositiveButton(getString(R.string.dialog_clear_confirm)) { _, _ ->
+                    prefsManager.clearLogs()
+                    refreshLogs()
+                }
+                .show()
         }
     }
 
@@ -145,7 +173,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnTestPing.text = "Pinging..."
 
         val testPayload = NotificationPayload(
-            packageName = "codes.churma.walletforwarder",
+            packageName = packageName,
             title = "Test Ping (Wallet Forwarder)",
             text = "Uji coba koneksi push notification webhook dari perangkat Android",
             timestamp = System.currentTimeMillis(),
@@ -165,7 +193,7 @@ class MainActivity : AppCompatActivity() {
                         getString(R.string.toast_test_ping_success),
                         Toast.LENGTH_LONG
                     ).show()
-                    prefsManager.appendLog("✓ Test ping OK: $responseText")
+                    prefsManager.appendLog("[OK] Test ping OK: $responseText")
                     refreshLogs()
                 }.onFailure { error ->
                     Toast.makeText(
@@ -173,7 +201,9 @@ class MainActivity : AppCompatActivity() {
                         getString(R.string.toast_test_ping_failed, error.message),
                         Toast.LENGTH_LONG
                     ).show()
-                    prefsManager.appendLog("✗ Test ping failed: ${error.message}")
+                    val errorMessage = error.message ?: "Unknown error"
+                    val errorSnippet = if (errorMessage.length > 50) errorMessage.take(50) + "..." else errorMessage
+                    prefsManager.appendLog("[FAIL] Test ping failed: $errorSnippet")
                     refreshLogs()
                 }
             }
@@ -183,5 +213,8 @@ class MainActivity : AppCompatActivity() {
     private fun refreshLogs() {
         val logs = prefsManager.getLogs()
         binding.tvLogsContent.text = logs.ifBlank { getString(R.string.logs_empty) }
+        binding.scrollLogs.post {
+            binding.scrollLogs.scrollTo(0, 0)
+        }
     }
 }

@@ -24,7 +24,13 @@
     
     <string name="section_logs">Forwarded Activity Log</string>
     <string name="logs_empty">No notifications captured yet.</string>
-    <string name="btn_clear_logs">Clear Logs</string>
+    <string name="btn_copy_logs">Copy</string>
+    <string name="btn_clear_logs">Clear</string>
+    <string name="toast_logs_copied">Logs copied to clipboard</string>
+    <string name="dialog_clear_logs_title">Clear Activity Logs</string>
+    <string name="dialog_clear_logs_message">Are you sure you want to clear all forwarded activity logs?</string>
+    <string name="dialog_clear_confirm">Clear</string>
+    <string name="dialog_cancel">Cancel</string>
     
     <string name="toast_config_saved">Configuration saved successfully!</string>
     <string name="toast_test_ping_success">Test ping successful! Server responded 200 OK.</string>
