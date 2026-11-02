@@ -6,7 +6,7 @@ Ultra-lightweight, 100% private, and battery-friendly Android companion applicat
 
 ---
 
-## 🎯 Why This App?
+## Why This App?
 Third-party automation apps (like MacroDroid or Tasker) introduce external app coupling, background battery restrictions, and feature paywalls. **Wallet Forwarder** provides:
 - **100% Privacy & Ownership**: Transaction notifications go directly from your phone to your self-hosted VPS endpoint without intermediate cloud services or third-party tracking.
 - **Ultra-Lightweight**: Minimal native Kotlin app (~2 MB APK) with negligible memory footprint and near-zero battery impact.
@@ -14,7 +14,7 @@ Third-party automation apps (like MacroDroid or Tasker) introduce external app c
 
 ---
 
-## 🏛 Architecture & Data Flow
+## Architecture & Data Flow
 
 ```
 [Bank / E-Wallet Notification]
@@ -40,7 +40,7 @@ Third-party automation apps (like MacroDroid or Tasker) introduce external app c
 
 ---
 
-## 📱 Supported Apps & Whitelist
+## Supported Apps & Whitelist
 
 | Institution / Platform | Package Name | Category |
 | :--- | :--- | :--- |
@@ -66,7 +66,7 @@ Third-party automation apps (like MacroDroid or Tasker) introduce external app c
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Download & Install APK
 1. Go to the [Releases page](https://github.com/Churma16/wallet-notification-forwarder-android/releases) or the [GitHub Actions tab](https://github.com/Churma16/wallet-notification-forwarder-android/actions).
@@ -85,7 +85,29 @@ Third-party automation apps (like MacroDroid or Tasker) introduce external app c
 
 ---
 
-## 🛠 Tech Stack
+## Release & Versioning Process
+
+This repository enforces automated versioning and changelog management via GitHub Actions:
+
+1. **Development & PRs**:
+   - Do **NOT** modify `versionCode` or `versionName` in `app/build.gradle.kts` within feature or bugfix PRs.
+   - Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `perf:`, etc.).
+   - CI executes `Verify No Manual Version Bumps in PR` to ensure version fields remain decoupled from daily development branches.
+
+2. **Official Releases**:
+   - Trigger the **Manual Release** workflow on GitHub Actions.
+   - The workflow analyzes git commit history since the last release tag:
+     - `fix:` commits trigger a **patch** bump (e.g. `1.0.7` -> `1.0.8`).
+     - `feat:` commits trigger a **minor** bump (e.g. `1.0.7` -> `1.1.0`).
+     - `BREAKING CHANGE:` or `!` triggers a **major** bump.
+   - `versionCode` is monotonically incremented (+1), `CHANGELOG.md` is appended, release notes are compiled, signed APKs are built, and an official GitHub Release is published with an AI-generated descriptive title.
+
+3. **Snapshot Builds**:
+   - Every merge to `main` automatically triggers the **Snapshot Pre-Release** workflow, compiling and publishing a preview APK tagged `v<version>-snapshot.<sha>` for testing.
+
+---
+
+## Tech Stack
 - **Language**: Kotlin 1.9.23
 - **Platform**: Android SDK 34 (Min SDK 26)
 - **Networking**: OkHttp 4.12.0
@@ -95,5 +117,5 @@ Third-party automation apps (like MacroDroid or Tasker) introduce external app c
 
 ---
 
-## 📄 License
+## License
 MIT License. Made for [Wallet MCP BudgetBakers Bot](https://github.com/Churma16/wallet-mcp-budgetbakers-bot).
