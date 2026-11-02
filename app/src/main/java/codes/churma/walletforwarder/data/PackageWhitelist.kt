@@ -7,32 +7,31 @@ object PackageWhitelist {
 
     val TARGET_PACKAGES = setOf(
         // Bank Jago
-        "com.jago.digital",
-        "com.jago",
+        "com.jago.digitalbanking",
 
         // Bank Mandiri (Livin')
-        "id.co.bankmandiri.livin",
-        "com.bankmandiri.livin",
+        "id.bmri.livin",
+        "id.co.bankmandiri",
 
         // BCA (BCA mobile, myBCA)
         "com.bca",
         "com.bca.mobile",
-        "com.bca.mybca",
-        "id.co.bca.mybca",
+        "com.bca.mybca.omni.android",
 
         // BRI (BRImo)
         "id.co.bri.brimo",
 
-        // BNI (BNI Mobile Banking & wondr by BNI)
+        // BNI (BNI Mobile Banking, wondr by BNI & TapCash)
+        "id.bni.wondr",
+        "id.co.bni.tapcashgo",
         "com.bni",
-        "co.id.bni.wondr",
 
         // Blu by BCA Digital
         "com.bcadigital.blu",
 
         // Jenius
+        "com.btpn.jenius.dc",
         "com.btpn.jenius",
-        "com.btpn.sinaya",
 
         // SeaBank
         "com.seabank.seabankid",
@@ -43,13 +42,14 @@ object PackageWhitelist {
         "id.co.cimbniaga.octomobile",
 
         // Flip
-        "id.co.flip",
+        "id.flip",
 
         // Gojek / GoPay
         "com.gojek.app",
         "com.gojek.gopay",
 
         // Shopee / ShopeePay
+        "com.shopeepay.id",
         "com.shopee.id",
 
         // DANA
