@@ -39,6 +39,33 @@ export function incrementVersion(currentVersion, bumpType) {
 }
 
 /**
+ * Pure function to detect bump type from commit subject strings.
+ *
+ * @param {string[]} subjects
+ * @returns {'patch' | 'minor' | 'major'}
+ */
+export function detectBumpTypeFromSubjects(subjects) {
+  if (!Array.isArray(subjects) || subjects.length === 0) {
+    return 'patch';
+  }
+
+  let hasMinor = false;
+  for (const subject of subjects) {
+    if (
+      subject.includes('BREAKING CHANGE') ||
+      /^[a-z]+(?:\([^)]+\))?!/i.test(subject)
+    ) {
+      return 'major';
+    }
+    if (/^feat(?:\([^)]+\))?:/i.test(subject)) {
+      hasMinor = true;
+    }
+  }
+
+  return hasMinor ? 'minor' : 'patch';
+}
+
+/**
  * Detects bump type from commit messages since last tag.
  *
  * @param {string} [prevTag]
@@ -47,7 +74,7 @@ export function incrementVersion(currentVersion, bumpType) {
 export function detectBumpTypeFromCommits(prevTag = '') {
   try {
     const revRange = prevTag ? `${prevTag}..HEAD` : 'HEAD';
-    const rawCommits = execSync(`git log --pretty=format:"%s" ${revRange}`, {
+    const rawCommits = execSync(`git log --no-merges --pretty=format:"%s" ${revRange}`, {
       encoding: 'utf8'
     }).trim();
 
@@ -56,23 +83,7 @@ export function detectBumpTypeFromCommits(prevTag = '') {
     }
 
     const lines = rawCommits.split('\n');
-    let hasMinor = false;
-
-    for (const subject of lines) {
-      if (
-        subject.includes('BREAKING CHANGE') ||
-        /^feat!/i.test(subject) ||
-        /^fix!/i.test(subject) ||
-        /^[a-z]+\([^)]+\)!/i.test(subject)
-      ) {
-        return 'major';
-      }
-      if (/^feat(?:\([^)]+\))?:/i.test(subject)) {
-        hasMinor = true;
-      }
-    }
-
-    return hasMinor ? 'minor' : 'patch';
+    return detectBumpTypeFromSubjects(lines);
   } catch {
     return 'patch';
   }
@@ -149,9 +160,11 @@ export async function bumpVersion() {
 
   let prevTag = '';
   try {
-    prevTag = execSync('git describe --tags --abbrev=0 2>/dev/null || true', {
-      encoding: 'utf8'
-    }).trim();
+    // Exclude snapshot tags so git describe finds the last official stable release tag
+    prevTag = execSync(
+      'git describe --tags --abbrev=0 --match="v[0-9]*.[0-9]*.[0-9]*" --exclude="*snapshot*" 2>/dev/null || true',
+      { encoding: 'utf8' }
+    ).trim();
   } catch {
     prevTag = '';
   }
@@ -165,14 +178,14 @@ export async function bumpVersion() {
   const nextCode = currentCode + 1;
   const nextTag = `v${nextVersion}`;
 
-  console.log(`[INFO] Current version: ${currentVersion} (code: ${currentCode})`);
+  console.log(`[INFO] Current version: ${currentVersion} (code: ${currentCode}), previous stable tag: ${prevTag || '(none)'}`);
   console.log(`[INFO] Bump type: ${bumpType} -> Next version: ${nextVersion} (code: ${nextCode})`);
 
   // Collect commits for release notes and changelog
   let commitLines = [];
   try {
     const revRange = prevTag ? `${prevTag}..HEAD` : 'HEAD';
-    const log = execSync(`git log --pretty=format:"* %s" ${revRange}`, {
+    const log = execSync(`git log --no-merges --pretty=format:"* %s" ${revRange}`, {
       encoding: 'utf8'
     }).trim();
     if (log) {

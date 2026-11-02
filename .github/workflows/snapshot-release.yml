@@ -40,6 +40,10 @@ jobs:
         id: snapshot_meta
         run: |
           VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          if [ -z "$VERSION" ]; then
+            echo "[ERROR] Failed to extract versionName from app/build.gradle.kts"
+            exit 1
+          fi
           SHORT_SHA=$(git rev-parse --short HEAD)
           SNAPSHOT_TAG="v${VERSION}-snapshot.${SHORT_SHA}"
           echo "SNAPSHOT_TAG=$SNAPSHOT_TAG" >> $GITHUB_ENV

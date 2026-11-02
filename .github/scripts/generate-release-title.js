@@ -4,8 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 /**
  * Sanitizes raw AI output into a clean, concise single-line release title.
- * Strips reasoning blocks (<think>...</think>), markdown formatting, enclosing quotes
- * (including unicode smart quotes), emojis, and unwanted title prefixes.
+ * Strips reasoning blocks (<think>...</think>, handling unclosed tags), markdown formatting,
+ * enclosing quotes (including unicode smart quotes), emojis, and unwanted title prefixes.
  *
  * @param {string | null | undefined} rawTitle - Raw title string from model output.
  * @returns {string} Sanitized title.
@@ -15,8 +15,9 @@ export function sanitizeTitle(rawTitle) {
     return '';
   }
 
-  // Strip reasoning blocks emitted by thinking/reasoning models (e.g. DeepSeek-R1)
-  const strippedTitle = rawTitle.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  // Strip reasoning blocks emitted by thinking/reasoning models (e.g. DeepSeek-R1),
+  // handling both closed and unclosed <think> tags if token limit was reached.
+  const strippedTitle = rawTitle.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '').trim();
 
   // Take the first non-empty line
   const firstLine = strippedTitle
@@ -71,20 +72,21 @@ export function extractReleaseSnippet(notesFilePath, tagName = '', maxCharacters
     }
   }
 
-  // Fallback to git log between tags
+  // Fallback to git log between tags excluding snapshot tags
   if (tagName) {
     try {
       let prevTag = '';
       try {
-        prevTag = execSync(`git describe --tags --abbrev=0 "${tagName}^" 2>/dev/null || true`, {
-          encoding: 'utf8'
-        }).trim();
+        prevTag = execSync(
+          `git describe --tags --abbrev=0 --match="v[0-9]*.[0-9]*.[0-9]*" --exclude="*snapshot*" "${tagName}^" 2>/dev/null || true`,
+          { encoding: 'utf8' }
+        ).trim();
       } catch {
         prevTag = '';
       }
 
       const revRange = prevTag ? `${prevTag}..${tagName}` : tagName;
-      const rawCommits = execSync(`git log --pretty=format:"* %s" ${revRange} -n 20`, {
+      const rawCommits = execSync(`git log --no-merges --pretty=format:"* %s" ${revRange} -n 20`, {
         encoding: 'utf8'
       }).trim();
 
