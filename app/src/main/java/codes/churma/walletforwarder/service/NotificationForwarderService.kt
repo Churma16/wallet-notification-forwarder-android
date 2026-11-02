@@ -74,7 +74,7 @@ class NotificationForwarderService : NotificationListenerService() {
 
         if (targetUrl.isBlank()) {
             Log.w(TAG, "Captured notification from $packageName, but Webhook URL is not configured.")
-            prefsManager.appendLog("⚠️ Skipped $packageName: Webhook URL not configured.")
+            prefsManager.appendLog("[WARN] Skipped $packageName: Webhook URL not configured.")
             return
         }
 
@@ -86,10 +86,12 @@ class NotificationForwarderService : NotificationListenerService() {
             result.onSuccess {
                 Log.i(TAG, "Successfully forwarded notification from $packageName: $title")
                 val snippet = if (text.length > 35) text.take(35) + "..." else text
-                prefsManager.appendLog("✓ Sent [$packageName] $snippet")
+                prefsManager.appendLog("[OK] Sent [$packageName] $snippet")
             }.onFailure { error ->
                 Log.e(TAG, "Failed to forward notification from $packageName: ${error.message}", error)
-                prefsManager.appendLog("✗ Failed [$packageName]: ${error.message}")
+                val errorMessage = error.message ?: "Unknown error"
+                val errorSnippet = if (errorMessage.length > 50) errorMessage.take(50) + "..." else errorMessage
+                prefsManager.appendLog("[FAIL] [$packageName]: $errorSnippet")
             }
         }
     }
