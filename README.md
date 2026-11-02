@@ -44,18 +44,18 @@ Third-party automation apps (like MacroDroid or Tasker) introduce external app c
 
 | Institution / Platform | Package Name | Category |
 | :--- | :--- | :--- |
-| **Bank Jago** | `com.jago.digital`, `com.jago` | Bank |
-| **Livin' by Mandiri** | `id.co.bankmandiri.livin`, `com.bankmandiri.livin` | Bank |
-| **BCA / myBCA / BCA mobile** | `com.bca`, `com.bca.mobile`, `com.bca.mybca`, `id.co.bca.mybca` | Bank |
+| **Bank Jago** | `com.jago.digitalbanking` | Bank |
+| **Livin' by Mandiri** | `id.bmri.livin`, `id.co.bankmandiri` | Bank |
+| **BCA / myBCA / BCA mobile** | `com.bca`, `com.bca.mobile`, `com.bca.mybca.omni.android` | Bank |
 | **BRI (BRImo)** | `id.co.bri.brimo` | Bank |
-| **BNI (BNI Mobile / wondr)** | `com.bni`, `co.id.bni.wondr` | Bank |
+| **BNI (BNI Mobile / wondr / TapCash)** | `id.bni.wondr`, `id.co.bni.tapcashgo`, `com.bni` | Bank |
 | **Blu by BCA Digital** | `com.bcadigital.blu` | Bank |
-| **Jenius** | `com.btpn.jenius`, `com.btpn.sinaya` | Bank |
+| **Jenius** | `com.btpn.jenius.dc`, `com.btpn.jenius` | Bank |
 | **SeaBank** | `com.seabank.seabankid`, `com.seabank.id` | Bank |
 | **CIMB Niaga (OCTO Mobile)** | `id.co.cimbniaga.mobile.android`, `id.co.cimbniaga.octomobile` | Bank |
-| **Flip** | `id.co.flip` | Bank |
+| **Flip** | `id.flip` | Bank |
 | **Gojek / GoPay** | `com.gojek.app`, `com.gojek.gopay` | E-Wallet |
-| **Shopee / ShopeePay** | `com.shopee.id` | E-Wallet |
+| **Shopee / ShopeePay** | `com.shopeepay.id`, `com.shopee.id` | E-Wallet |
 | **DANA** | `id.dana` | E-Wallet |
 | **OVO** | `ovo.id` | E-Wallet |
 | **LinkAja** | `com.telkom.mwallet` | E-Wallet |
