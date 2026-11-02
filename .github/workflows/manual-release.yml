@@ -1,0 +1,125 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type (auto determines from conventional commits)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - 'auto'
+          - 'patch'
+          - 'minor'
+          - 'major'
+      dry_run:
+        description: 'Dry run (simulate version bump and release notes without pushing tags/releases)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Official Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run Release Scripts Unit Tests
+        run: node --test tests/releaseScripts.test.js
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x ./gradlew
+
+      - name: Configure Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump Version and Update Changelog
+        id: bump
+        env:
+          RELEASE_TYPE: ${{ inputs.release_type }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: node .github/scripts/bump-version.js
+
+      - name: Restore Release Keystore
+        if: ${{ inputs.dry_run == false }}
+        run: |
+          if [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > release.jks
+            echo "[INFO] Release keystore restored from repository secret."
+          else
+            echo "[WARN] RELEASE_KEYSTORE_BASE64 not set, falling back to dynamic keystore."
+            keytool -genkeypair -v \
+              -keystore release.jks \
+              -alias walletforwarder \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass walletforwarder \
+              -keypass walletforwarder \
+              -dname "CN=Wallet Forwarder, OU=Churma, O=Churma, L=Jakarta, ST=Jakarta, C=ID"
+          fi
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+
+      - name: Build Signed Release APK
+        if: ${{ inputs.dry_run == false }}
+        run: ./gradlew assembleRelease --stacktrace
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Push Version Bump and Tag
+        if: ${{ inputs.dry_run == false }}
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
+          BRANCH=${{ github.ref_name }}
+          git push origin $BRANCH --follow-tags
+
+      - name: Generate AI Release Title
+        if: ${{ inputs.dry_run == false }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: 'openrouter/free'
+          TAG_NAME: ${{ env.RELEASE_TAG }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node .github/scripts/generate-release-title.js
+
+      - name: Publish Official GitHub Release
+        if: ${{ inputs.dry_run == false }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: ${{ env.RELEASE_NAME || env.RELEASE_TAG }}
+          body_path: release-notes.md
+          files: app/build/outputs/apk/release/*.apk
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

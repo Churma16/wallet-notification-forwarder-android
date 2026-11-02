@@ -1,0 +1,104 @@
+name: Snapshot Pre-Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'README.md'
+      - '.github/workflows/manual-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    name: Build & Publish Snapshot APK
+    runs-on: ubuntu-latest
+    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x ./gradlew
+
+      - name: Compute Snapshot Metadata
+        id: snapshot_meta
+        run: |
+          VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          if [ -z "$VERSION" ]; then
+            echo "[ERROR] Failed to extract versionName from app/build.gradle.kts"
+            exit 1
+          fi
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          SNAPSHOT_TAG="v${VERSION}-snapshot.${SHORT_SHA}"
+          echo "SNAPSHOT_TAG=$SNAPSHOT_TAG" >> $GITHUB_ENV
+          echo "SNAPSHOT_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "[INFO] Computed snapshot tag: $SNAPSHOT_TAG"
+
+      - name: Restore Release Keystore
+        run: |
+          if [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > release.jks
+            echo "[INFO] Release keystore restored from repository secret."
+          else
+            echo "[WARN] RELEASE_KEYSTORE_BASE64 not set, falling back to dynamic keystore."
+            keytool -genkeypair -v \
+              -keystore release.jks \
+              -alias walletforwarder \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass walletforwarder \
+              -keypass walletforwarder \
+              -dname "CN=Wallet Forwarder, OU=Churma, O=Churma, L=Jakarta, ST=Jakarta, C=ID"
+          fi
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+
+      - name: Build Signed Release APK
+        run: ./gradlew assembleRelease --stacktrace
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Package Snapshot APK
+        run: |
+          APK_FILE=$(ls app/build/outputs/apk/release/*.apk | head -n 1)
+          SNAPSHOT_APK="wallet-forwarder-${{ env.SNAPSHOT_TAG }}.apk"
+          cp "$APK_FILE" "$SNAPSHOT_APK"
+          echo "SNAPSHOT_APK=$SNAPSHOT_APK" >> $GITHUB_ENV
+          echo "[INFO] Ready to publish snapshot APK: $SNAPSHOT_APK"
+
+      - name: Publish Snapshot Pre-Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.SNAPSHOT_TAG }}
+          name: "Snapshot ${{ env.SNAPSHOT_TAG }}"
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          generate_release_notes: true
+          files: ${{ env.SNAPSHOT_APK }}
+          body: |
+            ### Snapshot Preview Build
+
+            This is an automated snapshot pre-release built from commit `${{ github.sha }}` on `main`.
+
+            Use this build to test bleeding-edge features and fixes on your Android device before the next official release.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
