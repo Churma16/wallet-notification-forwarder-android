@@ -36,7 +36,7 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
-            versionNameSuffix = versionSuffix ?: "-dev"
+            versionNameSuffix = versionSuffix?.takeIf { it.isNotBlank() } ?: "-dev"
         }
         release {
             isMinifyEnabled = false

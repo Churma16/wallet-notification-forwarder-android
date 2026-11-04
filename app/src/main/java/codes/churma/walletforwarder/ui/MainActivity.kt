@@ -12,6 +12,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import codes.churma.walletforwarder.BuildConfig
 import codes.churma.walletforwarder.R
@@ -229,10 +230,12 @@ class MainActivity : AppCompatActivity() {
         binding.tvAppVersion.text = versionText
 
         binding.tvAppVersion.setOnClickListener {
-            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipboard = ContextCompat.getSystemService(this, ClipboardManager::class.java)
             val clip = ClipData.newPlainText("Wallet Forwarder Version", versionText)
-            clipboard.setPrimaryClip(clip)
-            Toast.makeText(this, getString(R.string.toast_version_copied), Toast.LENGTH_SHORT).show()
+            clipboard?.setPrimaryClip(clip)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                Toast.makeText(this, getString(R.string.toast_version_copied), Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
