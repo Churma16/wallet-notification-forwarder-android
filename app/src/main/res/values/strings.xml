@@ -35,4 +35,7 @@
     <string name="toast_config_saved">Configuration saved successfully!</string>
     <string name="toast_test_ping_success">Test ping successful! Server responded 200 OK.</string>
     <string name="toast_test_ping_failed">Test ping failed: %s</string>
+    
+    <string name="app_version_format">v%1$s (%2$d)</string>
+    <string name="toast_version_copied">Version copied to clipboard</string>
 </resources>

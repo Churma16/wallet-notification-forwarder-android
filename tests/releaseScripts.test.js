@@ -121,6 +121,12 @@ test('hasVersionModifications allows unrelated changes in build.gradle.kts', () 
 +    implementation("androidx.biometric:biometric:1.2.0")
   `;
   assert.strictEqual(hasVersionModifications(diffWithDependency), false);
+  const diffWithVersionSuffix = `
+@@ -3,2 +3,4 @@
++val versionSuffix = project.findProperty("versionSuffix") as? String
++versionNameSuffix = versionSuffix
+  `;
+  assert.strictEqual(hasVersionModifications(diffWithVersionSuffix), false);
   assert.strictEqual(hasVersionModifications(''), false);
   assert.strictEqual(hasVersionModifications(null), false);
 });

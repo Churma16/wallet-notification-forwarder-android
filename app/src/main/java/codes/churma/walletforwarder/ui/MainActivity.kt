@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.lifecycleScope
+import codes.churma.walletforwarder.BuildConfig
 import codes.churma.walletforwarder.R
 import codes.churma.walletforwarder.data.PreferencesManager
 import codes.churma.walletforwarder.databinding.ActivityMainBinding
@@ -37,6 +38,7 @@ class MainActivity : AppCompatActivity() {
 
         setupInputs()
         setupListeners()
+        setupAppVersion()
     }
 
     override fun onResume() {
@@ -215,6 +217,22 @@ class MainActivity : AppCompatActivity() {
         binding.tvLogsContent.text = logs.ifBlank { getString(R.string.logs_empty) }
         binding.scrollLogs.post {
             binding.scrollLogs.scrollTo(0, 0)
+        }
+    }
+
+    private fun setupAppVersion() {
+        val versionText = getString(
+            R.string.app_version_format,
+            BuildConfig.VERSION_NAME,
+            BuildConfig.VERSION_CODE
+        )
+        binding.tvAppVersion.text = versionText
+
+        binding.tvAppVersion.setOnClickListener {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("Wallet Forwarder Version", versionText)
+            clipboard.setPrimaryClip(clip)
+            Toast.makeText(this, getString(R.string.toast_version_copied), Toast.LENGTH_SHORT).show()
         }
     }
 }

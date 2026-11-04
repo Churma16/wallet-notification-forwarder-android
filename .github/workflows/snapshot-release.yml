@@ -46,8 +46,10 @@ jobs:
           fi
           SHORT_SHA=$(git rev-parse --short HEAD)
           SNAPSHOT_TAG="v${VERSION}-snapshot.${SHORT_SHA}"
+          VERSION_SUFFIX="-snapshot.${SHORT_SHA}"
           echo "SNAPSHOT_TAG=$SNAPSHOT_TAG" >> $GITHUB_ENV
           echo "SNAPSHOT_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION_SUFFIX=$VERSION_SUFFIX" >> $GITHUB_ENV
           echo "[INFO] Computed snapshot tag: $SNAPSHOT_TAG"
 
       - name: Restore Release Keystore
@@ -71,7 +73,7 @@ jobs:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
 
       - name: Build Signed Release APK
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assembleRelease -PversionSuffix="${{ env.VERSION_SUFFIX }}" --stacktrace
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}

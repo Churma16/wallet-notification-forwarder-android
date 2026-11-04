@@ -3,6 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val versionSuffix = project.findProperty("versionSuffix") as? String
+
 android {
     namespace = "codes.churma.walletforwarder"
     compileSdk = 34
@@ -34,10 +36,13 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
-            versionNameSuffix = "-dev"
+            versionNameSuffix = versionSuffix ?: "-dev"
         }
         release {
             isMinifyEnabled = false
+            if (!versionSuffix.isNullOrBlank()) {
+                versionNameSuffix = versionSuffix
+            }
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -64,6 +69,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
